@@ -1,0 +1,32 @@
+# [voice-to-insights](https://github.com/devvienxyz/voice-to-insights)
+
+Record voice notes -> Get clean summaries + Bullet action items
+
+## Setup
+
+```bash
+./scripts/setup.sh
+```
+
+## Development
+
+```bash
+docker compose up --build
+```
+
+## Testing
+
+```bash
+tox              # run all
+tox -e lint      # lint and format check (ruff)
+tox -e typecheck # static type checking (mypy)
+tox -e py311     # run tests
+```
+
+## Support my work
+
+If you find my projects helpful, consider supporting me:
+
+<a href="https://www.buymeacoffee.com/devvienxyz" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="200" />
+</a>
