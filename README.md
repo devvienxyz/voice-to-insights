@@ -4,6 +4,12 @@ Record voice notes -> Get clean summaries + Bullet action items
 
 [![codecov](https://codecov.io/gh/devvienxyz/voice-to-insights/branch/main/graph/badge.svg)](https://codecov.io/gh/devvienxyz/voice-to-insights)
 
+Warning: This is still in progress.
+
+## Quick Demo
+
+[![Watch the demo](assets/demo.png)](/assets/demo.webm)
+
 ## Setup
 
 ```bash
