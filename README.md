@@ -13,7 +13,13 @@ Record voice notes -> Get clean summaries + Bullet action items
 ## Development
 
 ```bash
-docker compose up --build
+docker compose -f docker-compose.dev.yml up --build
+```
+
+## Production
+
+```bash
+docker compose -f docker-compose.prod.yml up --build
 ```
 
 ## Testing
