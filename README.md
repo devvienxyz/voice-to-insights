@@ -14,12 +14,9 @@ Record voice notes -> Get clean summaries + Bullet action items
 
 ```bash
 docker compose -f docker-compose.dev.yml up --build
-```
 
-## Production
-
-```bash
-docker compose -f docker-compose.prod.yml up --build
+# or, without docker:
+# streamlit run app/main.py --server.runOnSave=true
 ```
 
 ## Testing

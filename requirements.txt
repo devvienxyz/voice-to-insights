@@ -1,0 +1,7 @@
+streamlit
+pydub
+streamlit-webrtc
+openai-whisper
+transformers
+torchaudio
+torch

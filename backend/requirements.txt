@@ -1,7 +1,0 @@
-fastapi
-uvicorn[standard]
-gunicorn
-openai
-whisper
-torch
-python-multipart
