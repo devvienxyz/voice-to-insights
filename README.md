@@ -19,6 +19,8 @@ docker compose -f docker-compose.dev.yml up --build
 # streamlit run app/main.py --server.port 8501 --server.address 0.0.0.0 --server.runOnSave=true
 ```
 
+App is served at http://localhost:8501
+
 ## Testing
 
 ```bash
