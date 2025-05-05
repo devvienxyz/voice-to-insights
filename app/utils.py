@@ -1,5 +1,7 @@
 import warnings
 
+from app.constants import TextSummarizationModels
+
 warnings.filterwarnings("ignore", message="Tried to instantiate class '__path__._path'")
 
 import logging
@@ -10,6 +12,7 @@ import whisper
 import tempfile
 import numpy as np
 import pydub
+from transformers import pipeline
 
 
 logger = logging.getLogger(__name__)
@@ -76,3 +79,15 @@ def transcribe(audio_segment, language="en"):
 
         result = whisper_model.transcribe(audio_tensor, fp16=False, language=language)
         return result["text"]
+
+
+def extract_bullet_points(text: str):
+    lines = text.split(". ")
+    return [f"- {line.strip()}" for line in lines if line]
+
+
+def summarize(text: str, model=TextSummarizationModels.default):
+    summarizer = pipeline("summarization", model=model)
+    summary = summarizer(text, max_length=150, min_length=40, do_sample=False)[0]["summary_text"]
+    bullet_items = extract_bullet_points(summary)
+    return summary, bullet_items
