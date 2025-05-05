@@ -1,63 +1,58 @@
+import setup_pytorch
+import logging
+import queue
+
+import pydub
+from streamlit_webrtc import WebRtcMode, webrtc_streamer
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
-import av
-import numpy as np
-from transcriber import AudioTranscriber
-from summarizer import TextSummarizer
-from io import BytesIO
-import soundfile as sf
+from utils import (
+    ensure_recordings_dir_exists,
+    process_audio_frames,
+    update_sound_window_buffer,
+    transcribe,
+)
 
-st.set_page_config(page_title="Audio Summarizer", layout="centered")
+logger = logging.getLogger(__name__)
 
-st.title("🎤 Audio to Summary + Action Items")
 
-class AudioProcessor(AudioProcessorBase):
-    def __init__(self) -> None:
-        self.audio = []
+def setup_page():
+    st.set_page_config(page_title="Audio Summarizer", layout="centered")
+    st.title("🎤 Voice notes --> Summary + Action Items")
 
-    def recv(self, frame: av.AudioFrame) -> av.AudioFrame:
-        pcm = frame.to_ndarray()
-        self.audio.append(pcm)
-        return frame
-
-    def get_audio_bytes(self):
-        if not self.audio:
-            return None
-        audio_np = np.concatenate(self.audio, axis=1)[0]
-        buf = BytesIO()
-        sf.write(buf, audio_np, samplerate=16000, format="WAV")
-        return buf.getvalue()
 
 def main():
-    st.info("🎙️ Start speaking. When you're done, press Stop.")
+    ensure_recordings_dir_exists()
 
-    ctx = webrtc_streamer(
-        key="audio",
+    webrtc_ctx = webrtc_streamer(
+        key="sendonly-audio",
         mode=WebRtcMode.SENDONLY,
-        audio_processor_factory=AudioProcessor,
-        media_stream_constraints={"audio": True, "video": False},
+        audio_receiver_size=4096,
+        media_stream_constraints={"audio": True},
     )
 
-    if ctx.audio_processor and st.button("🔍 Transcribe & Summarize"):
-        audio_bytes = ctx.audio_processor.get_audio_bytes()
-        if audio_bytes:
-            st.subheader("⏱️ Transcribing...")
-            transcriber = AudioTranscriber()
-            transcript = transcriber.transcribe(audio_bytes)
+    sound_window_buffer = None
+    recording = pydub.AudioSegment.empty()
 
-            st.success("📝 Transcription Complete")
-            st.text_area("Transcript", transcript, height=200)
+    while True:
+        if webrtc_ctx.audio_receiver:
+            try:
+                audio_frames = webrtc_ctx.audio_receiver.get_frames(timeout=1)
+            except queue.Empty:
+                pass
 
-            st.subheader("🧠 Generating Summary & Action Items...")
-            summarizer = TextSummarizer()
-            summary, bullets = summarizer.summarize(transcript)
+            sound_chunk = process_audio_frames(audio_frames)
 
-            st.success("📌 Summary Generated")
-            st.markdown(f"**Summary:** {summary}")
-            st.markdown("**Action Items:**")
-            st.markdown("\n".join(bullets))
+            if len(sound_chunk) > 0:
+                sound_window_buffer = update_sound_window_buffer(sound_window_buffer, sound_chunk)
+                recording += sound_chunk
+                text = transcribe(sound_window_buffer)
+                logger.info(f"Transcription: {text}")
+                st.text(text)
+
         else:
-            st.warning("No audio captured.")
+            break
+
 
 if __name__ == "__main__":
+    setup_page()
     main()

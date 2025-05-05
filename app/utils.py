@@ -1,22 +1,16 @@
-"""A sample to use WebRTC in sendonly mode to transfer audio frames
-from the browser to the server and visualize them with matplotlib
-and `st.pyplot`."""
-
-import logging
-import os
-import queue
-from datetime import datetime
-import torch
-import torchaudio
-import whisper
-import tempfile
-
 import warnings
 
 warnings.filterwarnings("ignore", message="Tried to instantiate class '__path__._path'")
 
+import logging
+import os
+from datetime import datetime
+import torch
+import whisper
+import tempfile
+import numpy as np
 import pydub
-from streamlit_webrtc import WebRtcMode, webrtc_streamer
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +18,8 @@ RECORDINGS_DIR = "recordings"
 SOUND_WINDOW_LEN = 5000  # 5 seconds
 
 whisper_model = whisper.load_model("base")  # tiny, base, small, medium, large
+# torch.classes.__path__ = [os.path.join(torch.__path__[0], torch.classes.__file__)]
+torch.classes.__path__ = []
 
 
 def ensure_recordings_dir_exists():
@@ -68,15 +64,15 @@ def update_sound_window_buffer(sound_window_buffer, sound_chunk):
 
 def transcribe(audio_segment, language="en"):
     """Transcribe a pydub.AudioSegment using Whisper."""
+
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmpfile:
         audio_segment.export(tmpfile.name, format="wav")
-        audio_tensor, sr = torchaudio.load(tmpfile.name)
-        audio_tensor = torchaudio.functional.resample(audio_tensor, orig_freq=sr, new_freq=16000)
-        audio_np = audio_tensor.squeeze().numpy()
-        result = whisper_model.transcribe(
-            audio_np, fp16=torch.cuda.is_available(), language=language
-        )
-        print("\n\n\nRaw Whisper Result: \n")
-        print(type(result))
-        print(result)
+        audio_tensor = whisper.audio.load_audio(tmpfile.name)
+
+        # Check if the audio is silent (no meaningful content)
+        if np.max(np.abs(audio_tensor)) < 1e-3:
+            print("Warning: The audio is silent or too quiet to transcribe.")
+            return []
+
+        result = whisper_model.transcribe(audio_tensor, language=language)
         return result["text"]
