@@ -1,10 +1,16 @@
+import torch
+
+torch.set_num_threads(10)
+torch.set_num_interop_threads(10)
+
+
 import whisper
 from transformers import pipeline
 
 
 def preload_whisper_model():
     print("Downloading Whisper model...")
-    whisper.load_model("base")
+    whisper.load_model("medium", device="cpu")
 
 
 def preload_transformers_model():

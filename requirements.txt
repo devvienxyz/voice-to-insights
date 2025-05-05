@@ -7,3 +7,5 @@ torchaudio
 torch
 torchvision
 soundfile
+av
+numpy
