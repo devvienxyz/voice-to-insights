@@ -1,37 +1,53 @@
 import streamlit as st
 import requests
+from io import BytesIO
+from pydub import AudioSegment
 
-API_BASE = "http://localhost:8000"  # Change if deployed
 
-st.title("🎙️ Voice-to-Insight Tool")
-st.markdown("Upload a voice note to get a summary and action items.")
+class LLMVoiceApp:
+    def __init__(self):
+        self.backend_url = "http://localhost:10000/transcribe"
+        self.audio_bytes = None
+        self.transcript = None
 
-# Upload audio
-audio_file = st.file_uploader("Upload audio (.mp3 or .wav)", type=["mp3", "wav"])
+    def run(self):
+        st.set_page_config(page_title="LLM Voice App", layout="centered")
+        st.title("🧠 Talk to an LLM")
+        self.render_upload_section()
+        self.render_recording_section()
+        self.send_audio_to_backend()
 
-if audio_file:
-    with st.spinner("Transcribing..."):
-        # Transcribe
-        files = {"file": audio_file.getvalue()}
-        res = requests.post(f"{API_BASE}/transcribe", files=files)
-        if res.status_code != 200:
-            st.error("Transcription failed.")
-        else:
-            transcript = res.json().get("transcript", "")
-            st.subheader("📜 Transcript")
-            st.text(transcript)
+    def render_upload_section(self):
+        st.subheader("🎵 Upload Audio File")
+        file = st.file_uploader("Upload WAV/MP3/OGG", type=["wav", "mp3", "ogg"])
+        if file:
+            st.audio(file)
+            ext = file.name.split(".")[-1]
+            audio = AudioSegment.from_file(BytesIO(file.read()), format=ext)
+            buffer = BytesIO()
+            audio.export(buffer, format="wav")
+            buffer.seek(0)
+            self.audio_bytes = buffer
 
-            # Summarize
-            with st.spinner("Summarizing..."):
-                payload = {"transcript": transcript}
-                res2 = requests.post(f"{API_BASE}/summarize", json=payload)
-                if res2.status_code != 200:
-                    st.error("Summarization failed.")
-                else:
-                    data = res2.json()
-                    st.subheader("📝 Summary")
-                    st.write(data.get("summary", "N/A"))
+    def render_recording_section(self):
+        st.subheader("🎤 Or Record Audio")
+        with st.expander("Use Microphone (Coming Soon)"):
+            st.info("🎙️ Recording via mic not implemented yet.")
+            # Future: Add streamlit-webrtc audio capture here
 
-                    st.subheader("✅ Action Items")
-                    for item in data.get("actions", []):
-                        st.markdown(f"- {item}")
+    def send_audio_to_backend(self):
+        if self.audio_bytes and st.button("📤 Send to Backend"):
+            st.info("Transcribing...")
+            files = {"file": ("audio.wav", self.audio_bytes, "audio/wav")}
+            res = requests.post(self.backend_url, files=files)
+            if res.ok:
+                self.transcript = res.json().get("text", "")
+                st.success("📝 Transcription Complete")
+                st.markdown(f"> {self.transcript}")
+            else:
+                st.error("❌ Transcription failed.")
+
+
+if __name__ == "__main__":
+    app = LLMVoiceApp()
+    app.run()
