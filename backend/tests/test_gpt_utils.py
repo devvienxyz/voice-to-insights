@@ -1,4 +1,4 @@
-from backend.utils.gpu import summarize_text
+from backend.utils.gpt import summarize_text
 
 
 def test_summarize_output():

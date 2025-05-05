@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from backend.utils.whisper import transcribe_audio
-from backend.utils.gpu import summarize_text
+from backend.utils.gpt import summarize_text
 import tempfile
 
 app = FastAPI()
