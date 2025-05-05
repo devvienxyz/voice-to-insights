@@ -74,5 +74,5 @@ def transcribe(audio_segment, language="en"):
             print("Warning: The audio is silent or too quiet to transcribe.")
             return []
 
-        result = whisper_model.transcribe(audio_tensor, language=language)
+        result = whisper_model.transcribe(audio_tensor, fp16=False, language=language)
         return result["text"]
