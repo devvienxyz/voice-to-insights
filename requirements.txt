@@ -5,4 +5,5 @@ openai-whisper
 transformers
 torchaudio
 torch
+torchvision
 soundfile

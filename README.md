@@ -16,7 +16,7 @@ Record voice notes -> Get clean summaries + Bullet action items
 docker compose -f docker-compose.dev.yml up --build
 
 # or, without docker:
-# streamlit run app/main.py --server.runOnSave=true
+# streamlit run app/main.py --server.port 8501 --server.address 0.0.0.0 --server.runOnSave=true
 ```
 
 ## Testing
