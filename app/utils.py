@@ -1,6 +1,5 @@
 import warnings
 
-from app.constants import TextSummarizationModels
 
 warnings.filterwarnings("ignore", message="Tried to instantiate class '__path__._path'")
 
@@ -13,6 +12,7 @@ import tempfile
 import numpy as np
 import pydub
 from transformers import pipeline
+from constants import TextSummarizationModels
 
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ SOUND_WINDOW_LEN = 5000  # 5 seconds
 
 whisper_model = whisper.load_model("base")  # tiny, base, small, medium, large
 # torch.classes.__path__ = [os.path.join(torch.__path__[0], torch.classes.__file__)]
-torch.classes.__path__ = []
+# torch.classes.__path__ = []
 
 
 def ensure_recordings_dir_exists():
@@ -86,7 +86,12 @@ def extract_bullet_points(text: str):
     return [f"- {line.strip()}" for line in lines if line]
 
 
-def summarize(text: str, model=TextSummarizationModels.default):
+def summarize(text: str, model=TextSummarizationModels.default.value):
+    if len(text.strip().split()) < 20:
+        print("\n\nToo short!!!")
+        print(text)
+        return "", []  # Skip summarizing if input is already short
+
     summarizer = pipeline("summarization", model=model)
     summary = summarizer(text, max_length=150, min_length=40, do_sample=False)[0]["summary_text"]
     bullet_items = extract_bullet_points(summary)
