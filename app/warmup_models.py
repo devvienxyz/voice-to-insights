@@ -1,11 +1,9 @@
 import torch
+import whisper
+from transformers import pipeline
 
 torch.set_num_threads(10)
 torch.set_num_interop_threads(10)
-
-
-import whisper
-from transformers import pipeline
 
 
 def preload_whisper_model():
