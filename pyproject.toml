@@ -1,5 +1,10 @@
 [tool.ruff]
-# Ruff Linter and Formatter Configuration
 line-length = 120
+
+[tool.ruff.lint]
 exclude = ["__pycache__", ".tox", ".venv", "tests/data", "temp", ".pytest_cache", "mypy_cache"]
 select = ["E", "W", "F", "C"]
+ignore = ["E501"]
+
+[tool.ruff.isort]
+known-first-party = ["app"]
