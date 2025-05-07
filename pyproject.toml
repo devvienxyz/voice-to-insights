@@ -1,21 +1,5 @@
 [tool.ruff]
 # Ruff Linter and Formatter Configuration
-line-length = 100
-exclude = ["__pycache__", ".tox", ".venv", "tests/data"]
+line-length = 120
+exclude = ["__pycache__", ".tox", ".venv", "tests/data", "temp", ".pytest_cache", "mypy_cache"]
 select = ["E", "W", "F", "C"]
-
-[tool.mypy]
-# Mypy Type Checker Configuration
-python_version = "3.12"
-ignore_missing_imports = true
-disallow_untyped_defs = true
-
-[tool.black]
-# Black Code Formatter Configuration (Optional)
-line-length = 100
-target-version = ["py312"]
-
-[tool.isort]
-# Isort Configuration (Optional)
-profile = "black"
-known_third_party = ["fastapi", "uvicorn"]

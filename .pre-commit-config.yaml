@@ -1,8 +1,6 @@
 repos:
-  - repo: https://github.com/astral-sh/ruff
-    rev: v0.0.249 # Change to the latest stable version
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: "v0.4.0"
     hooks:
       - id: ruff
-        name: ruff (linting)
-        files: \.py$
-        args: ["--select", "E", "W", "F", "C"]
+        args: ["--fix"]
