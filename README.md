@@ -12,6 +12,10 @@ Warning: This is still in progress.
 
 ## Setup
 
+This project uses [pre-commit](https://pre-commit.com/) to ensure code quality and consistency.
+
+The precommit setup step is included in the setup script.
+
 ```bash
 ./scripts/setup.sh
 ```
@@ -22,10 +26,10 @@ Warning: This is still in progress.
 docker compose -f docker-compose.dev.yml up --build
 
 # or, without docker:
-# streamlit run app/main.py --server.port 8501 --server.address 0.0.0.0 --server.runOnSave=true
+# streamlit run app/main.py
 ```
 
-App is served at http://localhost:8501
+App is served at <http://localhost:8501>
 
 ## Testing
 
