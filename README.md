@@ -38,7 +38,7 @@ tox -e py311     # run tests
 tox -- -m unit
 tox -av          # list available environments
 tox -e py311 -- app/tests/test_core.py  # run a single test file
-tox -- app/tests/test_core.py::test_process_audio_frames_with_audio_frames  # run a single test
+tox -- app/tests/test_core.py::test_process_audio_frames_with_existing_buffer  # run a single test
 ```
 
 ## Support my work
