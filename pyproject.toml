@@ -25,5 +25,6 @@ omit = [
     "*/venv/*",
     "*/.tox/*",
     "*/migrations/*",
-    "*/__init__.py"
+    "*/__init__.py",
+    "*/conftest.py"
 ]

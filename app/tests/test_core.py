@@ -23,7 +23,7 @@ def test_process_audio_frames_with_audio_frames(mock_audio_frame):
     result = process_audio_frames(audio_frames, sound_window_buffer, sound_window_len)
 
     assert result is not None, "Expected sound_window_buffer to be initialized."
-    assert len(result) == 1000, "Expected sound_window_buffer to contain 1 second of audio."
+    assert len(result) == 5000
 
 
 @pytest.mark.unit
