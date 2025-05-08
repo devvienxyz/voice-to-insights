@@ -1,3 +1,7 @@
+[project]
+name = "voice-to-insight"
+version = "0.1"
+
 [tool.ruff]
 line-length = 120
 

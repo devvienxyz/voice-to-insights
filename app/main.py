@@ -1,11 +1,11 @@
-import setup_pytorch  # noqa: F401
 import logging
 import pydub
 import streamlit as st
 import queue
 from streamlit_webrtc import WebRtcMode, webrtc_streamer
-from core import handle_transcription, process_audio_frames
-from constants import APP_TITLE, AUDIO_RECEIVER_SIZE, MEDIA_STREAM_CONSTRAINTS, PAGE_TITLE, WEBRTC_KEY
+from app import setup_pytorch  # noqa: F401
+from app.core import handle_transcription, process_audio_frames
+from app.constants import APP_TITLE, AUDIO_RECEIVER_SIZE, MEDIA_STREAM_CONSTRAINTS, PAGE_TITLE, WEBRTC_KEY
 
 logger = logging.getLogger(__name__)
 
