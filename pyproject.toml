@@ -6,5 +6,5 @@ exclude = ["__pycache__", ".tox", ".venv", "tests/data", "temp", ".pytest_cache"
 select = ["E", "W", "F", "C"]
 ignore = ["E501"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["app"]
