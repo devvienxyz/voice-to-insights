@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: pip install tox
       - name: Run tests with tox and collect coverage
-        run: tox -e py11 --cov --cov-report=xml
+        run: tox -e py11 -- --cov --cov-report=xml
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v5
         with:
