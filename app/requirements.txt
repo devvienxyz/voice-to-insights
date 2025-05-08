@@ -9,5 +9,3 @@ torchvision
 soundfile
 av
 numpy
-ffmpeg
-imageio-ffmpeg
