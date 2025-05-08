@@ -7,7 +7,7 @@ import threading
 import queue
 import streamlit as st
 from transformers import pipeline
-from constants import TextSummarizationModels
+from app.constants import TextSummarizationModels
 
 
 logger = logging.getLogger(__name__)
