@@ -26,5 +26,7 @@ omit = [
     "*/.tox/*",
     "*/migrations/*",
     "*/__init__.py",
+    "*/app/setup_pytorch.py",
+    "*/app/warmup_models.py",
     "*/conftest.py"
 ]
