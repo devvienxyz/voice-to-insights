@@ -1,114 +1,86 @@
-import setup_pytorch
+import setup_pytorch  # noqa: F401
 import logging
-import queue
-
 import pydub
-from streamlit_webrtc import WebRtcMode, webrtc_streamer
 import streamlit as st
-from utils import (
-    ensure_recordings_dir_exists,
-    process_audio_frames,
-    summarize,
-    update_sound_window_buffer,
-    transcribe,
-)
+from streamlit_webrtc import WebRtcMode, webrtc_streamer
+from core import transcribe
+from constants import APP_TITLE, AUDIO_RECEIVER_SIZE, MEDIA_STREAM_CONSTRAINTS, PAGE_TITLE, WEBRTC_KEY
+import queue
 
 logger = logging.getLogger(__name__)
 
-
-def setup_webrtc_streamer():
-    """Set up the WebRTC streamer."""
-    return webrtc_streamer(
-        key="sendonly-audio",
-        mode=WebRtcMode.SENDONLY,
-        audio_receiver_size=4096,
-        media_stream_constraints={"audio": True},
-    )
-
-
-def setup_page():
-    st.set_page_config(page_title="Audio Summarizer", layout="centered")
-    st.title("🎤 Voice -> Summary + Action Items")
-
-    st.session_state.webrtc_ctx = setup_webrtc_streamer()
-
-    if "transcription_placeholder" not in st.session_state:
-        print("Initializing placeholders")
-        st.session_state.transcription_placeholder, st.session_state.summary_placeholder = (
-            create_layout()
-        )
-    else:
-        create_layout()
-
-
-def create_layout():
-    """Create the layout for the Streamlit app."""
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.header("Transcriptions")
-        transcription_placeholder = st.empty()
-
-    with col2:
-        st.header("Summary")
-        summary_placeholder = st.empty()
-
-    return transcription_placeholder, summary_placeholder
-
-
-def reset_placeholders():
-    """Reset the placeholders and clear session state."""
-    st.session_state.transcription_placeholder.empty()
-    st.session_state.summary_placeholder.empty()
-    st.session_state.transcription_placeholder, st.session_state.summary_placeholder = (
-        create_layout()
-    )
-
-
-def process_audio_stream(webrtc_ctx):
-    """Process the audio stream from the WebRTC context."""
-    sound_window_buffer = None
-    recording = pydub.AudioSegment.empty()
+# --- State Initialization ---
+if "transcribed_text" not in st.session_state:
     st.session_state.transcribed_text = []
+if "summary_text" not in st.session_state:
     st.session_state.summary_text = []
+if "sound_window_buffer" not in st.session_state:
+    st.session_state.sound_window_buffer = pydub.AudioSegment.silent(duration=0)
+
+
+st.set_page_config(page_title=PAGE_TITLE, layout="centered")
+st.title(APP_TITLE)
+
+webrtc_ctx = webrtc_streamer(
+    key=WEBRTC_KEY,
+    mode=WebRtcMode.SENDONLY,
+    audio_receiver_size=AUDIO_RECEIVER_SIZE,
+    media_stream_constraints=MEDIA_STREAM_CONSTRAINTS,
+)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.header("Transcriptions")
+    transcription_col = st.empty()
+with col2:
+    st.header("Summary")
+    summary_col = st.empty()
+
+
+def main():
+    sound_window_len = 5000  # 5s
+    sound_window_buffer = None
 
     while True:
         if webrtc_ctx.audio_receiver:
             try:
                 audio_frames = webrtc_ctx.audio_receiver.get_frames(timeout=1)
             except queue.Empty:
-                pass
+                logger.warning("Queue is empty. Abort.")
+                break
 
-            sound_chunk = process_audio_frames(audio_frames)
+            sound_chunk = pydub.AudioSegment.empty()
+
+            for audio_frame in audio_frames:
+                sound = pydub.AudioSegment(
+                    data=audio_frame.to_ndarray().tobytes(),
+                    sample_width=audio_frame.format.bytes,
+                    frame_rate=audio_frame.sample_rate,
+                    channels=len(audio_frame.layout.channels),
+                )
+                sound_chunk += sound
 
             if len(sound_chunk) > 0:
-                sound_window_buffer = update_sound_window_buffer(sound_window_buffer, sound_chunk)
-                recording += sound_chunk
+                if sound_window_buffer is None:
+                    sound_window_buffer = pydub.AudioSegment.silent(duration=sound_window_len)
 
+                sound_window_buffer += sound_chunk
+                if len(sound_window_buffer) > sound_window_len:
+                    sound_window_buffer = sound_window_buffer[-sound_window_len:]
+
+            if sound_window_buffer:
                 transcribed_text = transcribe(sound_window_buffer)
-                st.session_state.transcribed_text.append(transcribed_text)
-                st.session_state.transcription_placeholder.text(st.session_state.transcribed_text)
+                print("Transcribed Text Fragment:", transcribed_text)
+                transcription_col.write(transcribed_text)
+            else:
+                st.write("No audio frames received.")
 
-                summary_text = summarize(text=transcribed_text)
-                st.session_state.summary_text.append(summary_text)
-                st.session_state.summary_placeholder.text(st.session_state.summary_text)
         else:
+            logger.warning("WebRTC is not running. Please start the stream.")
+            logger.debug(f"WebRTC state: {webrtc_ctx.state}")
             break
 
 
-def main():
-    print("\n\n\n\n\n")
-    # print(st.session_state)
-    print("\n\n\n\n\n")
-    webrtc_ctx = st.session_state.webrtc_ctx
-    process_audio_stream(webrtc_ctx)
-
-    if webrtc_ctx.state == "STOPPED":  # Check if the recording is stopped
-        if st.button("Start Over"):
-            reset_placeholders()
-            return
-
-
 if __name__ == "__main__":
-    setup_page()
     main()
