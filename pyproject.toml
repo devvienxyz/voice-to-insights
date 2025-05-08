@@ -16,3 +16,14 @@ known-first-party = ["app"]
 [tool.mypy]
 exclude = "(^|/)(tests|docs|build|dist|__pycache__|venv|.venv|.tox)/"
 ignore_missing_imports = true
+
+[tool.coverage.run]
+omit = [
+    "*/__pycache__/*",
+    "*/tests/*",
+    "temp/*",
+    "*/venv/*",
+    "*/.tox/*",
+    "*/migrations/*",
+    "*/__init__.py"
+]

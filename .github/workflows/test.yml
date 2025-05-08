@@ -6,18 +6,22 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-      - name: Install deps
-        run: |
-          pip install pytest coverage pytest-cov codecov
-      - name: Run tests
-        run: |
-          pytest --cov=your_package_name --cov-report=xml
-      - name: Upload coverage reports to Codecov
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install tox
+      - name: Run tests with tox and collect coverage
+        run: tox -e py11 --cov --cov-report=xml
+      - name: Upload results to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          slug: devvienxyz/voice-to-insights
+          files: ./coverage.xml
+          flags: unittests
+          name: unittests
