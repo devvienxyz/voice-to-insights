@@ -12,7 +12,7 @@ from constants import TextSummarizationModels
 
 logger = logging.getLogger(__name__)
 
-TRANSCRIPTION_QUEUE = queue.Queue(maxsize=10)  # bounded to avoid memory bloat
+TRANSCRIPTION_QUEUE: queue.Queue = queue.Queue(maxsize=10)  # bounded to avoid memory bloat
 whisper_model = whisper.load_model("base")  # tiny, base, small, medium, large
 
 

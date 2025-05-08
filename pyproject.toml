@@ -8,3 +8,7 @@ ignore = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
+
+[tool.mypy]
+exclude = "(^|/)(tests|docs|build|dist|__pycache__|venv|.venv|.tox)/"
+ignore_missing_imports = true

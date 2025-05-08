@@ -35,6 +35,7 @@ tox              # run all
 tox -e lint      # lint and format check (ruff)
 tox -e typecheck # static type checking (mypy)
 tox -e py311     # run tests
+tox -- -m unit
 ```
 
 ## Support my work
