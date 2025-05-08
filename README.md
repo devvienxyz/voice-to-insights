@@ -23,10 +23,7 @@ The precommit setup step is included in the setup script.
 ## Development
 
 ```bash
-docker compose -f docker-compose.dev.yml up --build
-
-# or, without docker:
-# streamlit run app/main.py
+./start.sh
 ```
 
 App is served at <http://localhost:8501>
