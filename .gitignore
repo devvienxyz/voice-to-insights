@@ -1,3 +1,6 @@
 TODO
 **/__pycache__
 temp
+*.wav
+*.egg-info/
+
