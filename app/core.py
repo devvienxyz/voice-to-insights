@@ -1,13 +1,13 @@
 import logging
-import pydub.exceptions
 import whisper
 import tempfile
 import numpy as np
 import pydub
 import threading
 import queue
+import streamlit as st
 from transformers import pipeline
-from constants import SOUND_WINDOW_LEN, TextSummarizationModels
+from constants import TextSummarizationModels
 
 
 logger = logging.getLogger(__name__)
@@ -16,9 +16,9 @@ TRANSCRIPTION_QUEUE = queue.Queue(maxsize=10)  # bounded to avoid memory bloat
 whisper_model = whisper.load_model("base")  # tiny, base, small, medium, large
 
 
-def process_audio_frames(audio_frames):
-    """Process audio frames into a pydub AudioSegment."""
+def process_audio_frames(audio_frames, sound_window_buffer, sound_window_len):
     sound_chunk = pydub.AudioSegment.empty()
+
     for audio_frame in audio_frames:
         sound = pydub.AudioSegment(
             data=audio_frame.to_ndarray().tobytes(),
@@ -27,25 +27,25 @@ def process_audio_frames(audio_frames):
             channels=len(audio_frame.layout.channels),
         )
         sound_chunk += sound
-    return sound_chunk
 
+    if len(sound_chunk) > 0:
+        if sound_window_buffer is None:
+            sound_window_buffer = pydub.AudioSegment.silent(duration=sound_window_len)
 
-def update_sound_window_buffer(sound_window_buffer, sound_chunk):
-    """Update the sound window buffer with the new sound chunk."""
-    if sound_window_buffer is None:
-        sound_window_buffer = pydub.AudioSegment.silent(duration=SOUND_WINDOW_LEN)
-
-    try:
-        sound_window_buffer = sound_window_buffer[-SOUND_WINDOW_LEN:] + sound_chunk
-    except pydub.exceptions.TooManyMissingFrames:
-        logger.warning("Too many missing frames in sound window buffer")
-        # sound_window_buffer = pydub.AudioSegment.silent(duration=SOUND_WINDOW_LEN) + sound_chunk
-
-    if len(sound_window_buffer) > SOUND_WINDOW_LEN:
-        print("Sound window buffer too long, trimming")
-        sound_window_buffer = sound_window_buffer[-SOUND_WINDOW_LEN:]
+        sound_window_buffer += sound_chunk
+        if len(sound_window_buffer) > sound_window_len:
+            sound_window_buffer = sound_window_buffer[-sound_window_len:]
 
     return sound_window_buffer
+
+
+def handle_transcription(sound_window_buffer, transcription_col):
+    if sound_window_buffer:
+        transcribed_text = transcribe(sound_window_buffer)
+        print("Transcribed Text Fragment:", transcribed_text)
+        transcription_col.write(transcribed_text)
+    else:
+        st.write("No audio frames received.")
 
 
 def transcribe(audio_segment, language="en"):

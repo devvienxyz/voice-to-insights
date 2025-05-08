@@ -5,9 +5,7 @@ class TextSummarizationModels(Enum):
     default = "sshleifer/distilbart-cnn-12-6"
 
 
-
 RECORDINGS_DIR = "recordings"
-SOUND_WINDOW_LEN = 5000  # 5 seconds
 
 # --- Configuration ---
 AUDIO_RECEIVER_SIZE = 4096

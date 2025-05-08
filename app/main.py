@@ -2,10 +2,10 @@ import setup_pytorch  # noqa: F401
 import logging
 import pydub
 import streamlit as st
-from streamlit_webrtc import WebRtcMode, webrtc_streamer
-from core import transcribe
-from constants import APP_TITLE, AUDIO_RECEIVER_SIZE, MEDIA_STREAM_CONSTRAINTS, PAGE_TITLE, WEBRTC_KEY
 import queue
+from streamlit_webrtc import WebRtcMode, webrtc_streamer
+from core import handle_transcription, process_audio_frames
+from constants import APP_TITLE, AUDIO_RECEIVER_SIZE, MEDIA_STREAM_CONSTRAINTS, PAGE_TITLE, WEBRTC_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -50,31 +50,8 @@ def main():
                 logger.warning("Queue is empty. Abort.")
                 break
 
-            sound_chunk = pydub.AudioSegment.empty()
-
-            for audio_frame in audio_frames:
-                sound = pydub.AudioSegment(
-                    data=audio_frame.to_ndarray().tobytes(),
-                    sample_width=audio_frame.format.bytes,
-                    frame_rate=audio_frame.sample_rate,
-                    channels=len(audio_frame.layout.channels),
-                )
-                sound_chunk += sound
-
-            if len(sound_chunk) > 0:
-                if sound_window_buffer is None:
-                    sound_window_buffer = pydub.AudioSegment.silent(duration=sound_window_len)
-
-                sound_window_buffer += sound_chunk
-                if len(sound_window_buffer) > sound_window_len:
-                    sound_window_buffer = sound_window_buffer[-sound_window_len:]
-
-            if sound_window_buffer:
-                transcribed_text = transcribe(sound_window_buffer)
-                print("Transcribed Text Fragment:", transcribed_text)
-                transcription_col.write(transcribed_text)
-            else:
-                st.write("No audio frames received.")
+            sound_window_buffer = process_audio_frames(audio_frames, sound_window_buffer, sound_window_len)
+            handle_transcription(sound_window_buffer, transcription_col)
 
         else:
             logger.warning("WebRTC is not running. Please start the stream.")
