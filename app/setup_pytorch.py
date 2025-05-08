@@ -1,32 +1,20 @@
 import torch
-import streamlit.watcher.local_sources_watcher as watcher
+import types
+import streamlit.watcher.local_sources_watcher
+
+torch.set_num_threads(10)
+torch.set_num_interop_threads(10)
 
 
-# Set thread limits
-CPU_COUNT = 10
-torch.set_num_threads(CPU_COUNT)
-torch.set_num_interop_threads(CPU_COUNT)
-
-
-# Patch get_module_paths to avoid torch.classes crash
-def safe_get_module_paths(module):
+# Patch streamlit watcher
+def patched_get_module_paths(module):
     try:
-        # Avoid calling __path__._path directly
-        return list(getattr(module, "__path__", []))
+        paths = getattr(module, "__path__", None)
+        if paths is None or not isinstance(paths, (list, types.ModuleType)):
+            return []
+        return list(paths)
     except Exception:
         return []
 
 
-watcher.get_module_paths = safe_get_module_paths
-
-
-def run_health_check():
-    try:
-        paths = watcher.get_module_paths(torch.classes)
-        print("✅ Health check passed:", paths)
-    except Exception as e:
-        print("❌ Health check failed:", repr(e))
-
-
-if __name__ == "__main__":
-    run_health_check()
+streamlit.watcher.local_sources_watcher.get_module_paths = patched_get_module_paths
