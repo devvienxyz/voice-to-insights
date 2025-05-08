@@ -1,5 +1,4 @@
 import logging
-import pydub
 import streamlit as st
 import queue
 from streamlit_webrtc import WebRtcMode, webrtc_streamer
@@ -14,9 +13,6 @@ if "transcribed_text" not in st.session_state:
     st.session_state.transcribed_text = []
 if "summary_text" not in st.session_state:
     st.session_state.summary_text = []
-if "sound_window_buffer" not in st.session_state:
-    st.session_state.sound_window_buffer = pydub.AudioSegment.silent(duration=0)
-
 
 st.set_page_config(page_title=PAGE_TITLE, layout="centered")
 st.title(APP_TITLE)
