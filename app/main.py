@@ -5,13 +5,15 @@ from streamlit_webrtc import WebRtcMode, webrtc_streamer
 from app import setup_pytorch  # noqa: F401
 from app.core import handle_summarization, handle_transcription, process_audio_frames
 from app.constants import APP_TITLE, AUDIO_RECEIVER_SIZE, MEDIA_STREAM_CONSTRAINTS, PAGE_TITLE, WEBRTC_KEY
-from app.utils import initialize_session_state
+from app.utils import initialize_session_state, set_styles
 
 logger = logging.getLogger(__name__)
 
 
 st.set_page_config(page_title=PAGE_TITLE, layout="centered")
 st.title(APP_TITLE)
+
+set_styles()
 
 webrtc_ctx = webrtc_streamer(
     key=WEBRTC_KEY,
@@ -20,28 +22,8 @@ webrtc_ctx = webrtc_streamer(
     media_stream_constraints=MEDIA_STREAM_CONSTRAINTS,
 )
 
-st.markdown(
-    """
-    <style>
-    .output-box {
-        height: 200px;
-        overflow-y: auto;
-        border: 1px solid #ccc;
-        padding: 10px;
-        background-color: transparent;
-        margin-bottom: 1rem;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 transcription_box = st.empty()
 summary_box = st.empty()
-
-if not webrtc_ctx.state.playing:
-    if st.button("Clear Transcript"):
-        initialize_session_state()
 
 
 def main():

@@ -20,7 +20,30 @@ def initialize_session_state():
     """Initialize session state variables."""
     if "transcribed_text" not in st.session_state:
         st.session_state.transcriptions = []
+
     if "summary_text" not in st.session_state:
         st.session_state.summaries = []
+
     if "bullet_points" not in st.session_state:
         st.session_state.bullet_points = []
+
+    if "sound_window_buffer" not in st.session_state:
+        st.session_state.sound_window_buffer = None
+
+
+def set_styles():
+    st.markdown(
+        """
+        <style>
+        .output-box {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: transparent;
+            margin-bottom: 1rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
