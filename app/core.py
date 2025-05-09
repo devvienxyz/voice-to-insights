@@ -76,9 +76,9 @@ def transcribe(processed_audio, language="en"):
         audio = whisper.load_audio(tmpfile.name)
         audio = whisper.pad_or_trim(audio)
 
-        # Silent check
-        if np.max(np.abs(audio)) < 1e-3:
-            logger.debug("Silent or too quiet audio")
+        # Enhanced silence check using mean amplitude
+        if np.mean(np.abs(audio)) < 1e-4:
+            logger.debug("Likely silent audio, skipping transcription.")
             return ""
 
         mel = whisper.log_mel_spectrogram(audio).to(whisper_model.device)
@@ -91,6 +91,11 @@ def transcribe(processed_audio, language="en"):
 
         with decode_lock:
             result = whisper_model.decode(mel, options)
+
+        # Use Whisper's no-speech probability to reject likely silence
+        if hasattr(result, "no_speech_prob") and result.no_speech_prob > 0.6:
+            logger.debug(f"No-speech probability too high ({result.no_speech_prob:.2f}), skipping.")
+            return ""
 
         return result.text.strip()
 
