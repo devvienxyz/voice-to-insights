@@ -6,9 +6,12 @@ import pydub
 import threading
 import queue
 import streamlit as st
+from threading import Lock
 from transformers import pipeline
 from app.constants import TextSummarizationModels
 
+# Thread lock to prevent concurrent decode corruption (esp. in Streamlit)
+decode_lock = Lock()
 logger = logging.getLogger(__name__)
 
 TRANSCRIPTION_QUEUE: queue.Queue = queue.Queue(maxsize=10)  # bounded to avoid memory bloat
@@ -73,19 +76,23 @@ def transcribe(processed_audio, language="en"):
         processed_audio.export(tmpfile.name, format="wav")
         audio = whisper.load_audio(tmpfile.name)
         audio = whisper.pad_or_trim(audio)
-        mel = whisper.log_mel_spectrogram(audio).to(whisper_model.device)
 
         # Silent check
         if np.max(np.abs(audio)) < 1e-3:
             logger.debug("Silent or too quiet audio")
             return ""
 
+        mel = whisper.log_mel_spectrogram(audio).to(whisper_model.device)
+
         # Sanity check to avoid decoding empty input
         if mel.shape[-1] == 0:
             return {"text": "", "error": "Empty or invalid audio input."}
 
         options = whisper.DecodingOptions(language=language, fp16=False)
-        result = whisper_model.decode(mel, options)
+
+        with decode_lock:
+            result = whisper_model.decode(mel, options)
+
         return result.text.strip()
 
 
