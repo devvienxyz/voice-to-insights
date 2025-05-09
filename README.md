@@ -1,6 +1,6 @@
 # [voice-to-insights](https://github.com/devvienxyz/voice-to-insights)
 
-Record voice notes -> Get clean summaries + Bullet action items
+Record voice notes -> Summaries
 
 [![codecov](https://codecov.io/gh/devvienxyz/voice-to-insights/branch/main/graph/badge.svg)](https://codecov.io/gh/devvienxyz/voice-to-insights)
 

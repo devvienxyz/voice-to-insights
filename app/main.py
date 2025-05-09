@@ -27,8 +27,6 @@ summary_box = st.empty()
 
 
 def main():
-    sound_window_len = 5000  # 5s
-    sound_window_buffer = None
     initialize_session_state()
 
     while True:
@@ -39,8 +37,8 @@ def main():
                 logger.warning("Queue is empty. Abort.")
                 break
 
-            sound_window_buffer = process_audio_frames(audio_frames, sound_window_buffer, sound_window_len)
-            handle_transcription(sound_window_buffer, transcription_box)
+            processed_audio = process_audio_frames(audio_frames)
+            handle_transcription(processed_audio, transcription_box)
             handle_summarization(summary_box)
         else:
             logger.warning("WebRTC is not running. Please start the stream.")

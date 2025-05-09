@@ -27,9 +27,6 @@ def initialize_session_state():
     if "bullet_points" not in st.session_state:
         st.session_state.bullet_points = []
 
-    if "sound_window_buffer" not in st.session_state:
-        st.session_state.sound_window_buffer = None
-
 
 def set_styles():
     st.markdown(

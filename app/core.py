@@ -9,14 +9,13 @@ import streamlit as st
 from transformers import pipeline
 from app.constants import TextSummarizationModels
 
-
 logger = logging.getLogger(__name__)
 
 TRANSCRIPTION_QUEUE: queue.Queue = queue.Queue(maxsize=10)  # bounded to avoid memory bloat
 whisper_model = whisper.load_model("base")  # tiny, base, small, medium, large
 
 
-def process_audio_frames(audio_frames, sound_window_buffer, sound_window_len):
+def process_audio_frames(audio_frames):
     sound_chunk = pydub.AudioSegment.empty()
 
     for audio_frame in audio_frames:
@@ -28,20 +27,12 @@ def process_audio_frames(audio_frames, sound_window_buffer, sound_window_len):
         )
         sound_chunk += sound
 
-    if len(sound_chunk) > 0:
-        if sound_window_buffer is None:
-            sound_window_buffer = pydub.AudioSegment.silent(duration=sound_window_len)
-
-        sound_window_buffer += sound_chunk
-        if len(sound_window_buffer) > sound_window_len:
-            sound_window_buffer = sound_window_buffer[-sound_window_len:]
-
-    return sound_window_buffer
+    return sound_chunk
 
 
-def handle_transcription(sound_window_buffer, transcription_box):
-    if sound_window_buffer:
-        transcribed_text = transcribe(sound_window_buffer)
+def handle_transcription(processed_audio, transcription_box):
+    if processed_audio:
+        transcribed_text = transcribe(processed_audio)
 
         st.session_state.transcriptions.append(transcribed_text)
 
@@ -60,13 +51,15 @@ def handle_summarization(summary_box):
     st.session_state.summaries.append(summaries)
     st.session_state.bullet_points.append(bullets)
 
-    summary_html = "<br>".join(st.session_state.summaries)
-    bullets_html = "".join(f"<li>{item}</li>" for item in st.session_state.bullet_points)
+    flat_bullets = st.session_state.bullet_points[-1] if st.session_state.bullet_points else []
+
+    summary_html = "" if not st.session_state.summaries else st.session_state.summaries[-1]
+    bullets_html = "".join(f"<li>{item}</li>" for item in flat_bullets)
 
     full_html = f"""
     <div class="output-box">
         <p>{summary_html}</p>
-        <ul>{bullets_html}</ul>
+        <ul>{bullets_html}</p>
     </div>
     """
 
@@ -74,10 +67,10 @@ def handle_summarization(summary_box):
     summary_box.markdown(full_html, unsafe_allow_html=True)
 
 
-def transcribe(audio_segment, language="en"):
+def transcribe(processed_audio, language="en"):
     """Transcribe a pydub.AudioSegment using Whisper."""
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmpfile:
-        audio_segment.export(tmpfile.name, format="wav")
+        processed_audio.export(tmpfile.name, format="wav")
         audio = whisper.load_audio(tmpfile.name)
         audio = whisper.pad_or_trim(audio)
         mel = whisper.log_mel_spectrogram(audio).to(whisper_model.device)
@@ -86,6 +79,10 @@ def transcribe(audio_segment, language="en"):
         if np.max(np.abs(audio)) < 1e-3:
             logger.debug("Silent or too quiet audio")
             return ""
+
+        # Sanity check to avoid decoding empty input
+        if mel.shape[-1] == 0:
+            return {"text": "", "error": "Empty or invalid audio input."}
 
         options = whisper.DecodingOptions(language=language, fp16=False)
         result = whisper_model.decode(mel, options)
