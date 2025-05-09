@@ -6,9 +6,12 @@ Record voice notes -> Summaries
 
 Warning: This is still in progress.
 
+🌎 Try the app: https://voice-notes-to-summary.streamlit.app/
+
 ## Quick Demo
 
 [![Watch the demo](assets/demo.png)](/assets/demo.webm)
+
 
 ## Setup
 
