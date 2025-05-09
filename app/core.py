@@ -3,7 +3,6 @@ import whisper
 import tempfile
 import numpy as np
 import pydub
-import threading
 import queue
 import streamlit as st
 from threading import Lock
@@ -117,28 +116,3 @@ def summarize(text: str, model=TextSummarizationModels.default.value):
 
     bullet_items = extract_bullet_points(summary)
     return summary, bullet_items
-
-
-def start_transcription_worker(callback):
-    def worker():
-        while True:
-            audio_segment = TRANSCRIPTION_QUEUE.get()
-            try:
-                text = transcribe(audio_segment)
-                if text:
-                    callback(text)  # push transcription to main app/GUI/log
-            except Exception as e:
-                logger.exception("Transcription failed: %s", e)
-            finally:
-                TRANSCRIPTION_QUEUE.task_done()
-
-    t = threading.Thread(target=worker, daemon=True)
-    t.start()
-
-
-def queue_audio_for_transcription(audio_segment):
-    """Push audio to transcription queue. Drops if queue is full."""
-    try:
-        TRANSCRIPTION_QUEUE.put_nowait(audio_segment)
-    except queue.Full:
-        logger.warning("Dropped audio chunk due to queue overflow")
