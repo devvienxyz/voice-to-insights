@@ -1,8 +1,8 @@
 import streamlit as st
-from constants import RECORDINGS_DIR
 import logging
 import os
 from datetime import datetime
+from app.constants import RECORDINGS_DIR
 
 logger = logging.getLogger(__name__)
 
