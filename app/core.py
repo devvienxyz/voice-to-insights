@@ -102,7 +102,7 @@ def transcribe(processed_audio, language="en"):
 
 def extract_bullet_points(text: str):
     lines = text.split(". ")
-    return [f"- {line.strip()}" for line in lines if line]
+    return [line.strip().rstrip(".") for line in lines if line]
 
 
 def summarize(text: str, model=TextSummarizationModels.default.value):
