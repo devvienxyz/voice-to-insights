@@ -10,8 +10,7 @@ Warning: This is still in progress.
 
 ## Quick Demo
 
-[![Watch the demo](assets/demo.png)](/assets/demo.webm)
-
+[![Watch the demo](assets/demo.png)](/assets/voice-notes-summary-demo.webm)
 
 ## Setup
 
