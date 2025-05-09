@@ -3,16 +3,12 @@ import streamlit as st
 import queue
 from streamlit_webrtc import WebRtcMode, webrtc_streamer
 from app import setup_pytorch  # noqa: F401
-from app.core import handle_transcription, process_audio_frames
+from app.core import handle_summarization, handle_transcription, process_audio_frames
 from app.constants import APP_TITLE, AUDIO_RECEIVER_SIZE, MEDIA_STREAM_CONSTRAINTS, PAGE_TITLE, WEBRTC_KEY
+from app.utils import initialize_session_state
 
 logger = logging.getLogger(__name__)
 
-# --- State Initialization ---
-if "transcribed_text" not in st.session_state:
-    st.session_state.transcribed_text = []
-if "summary_text" not in st.session_state:
-    st.session_state.summary_text = []
 
 st.set_page_config(page_title=PAGE_TITLE, layout="centered")
 st.title(APP_TITLE)
@@ -24,19 +20,34 @@ webrtc_ctx = webrtc_streamer(
     media_stream_constraints=MEDIA_STREAM_CONSTRAINTS,
 )
 
-col1, col2 = st.columns(2)
+st.markdown(
+    """
+    <style>
+    .output-box {
+        height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        background-color: transparent;
+        margin-bottom: 1rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-with col1:
-    st.header("Transcriptions")
-    transcription_col = st.empty()
-with col2:
-    st.header("Summary")
-    summary_col = st.empty()
+transcription_box = st.empty()
+summary_box = st.empty()
+
+if not webrtc_ctx.state.playing:
+    if st.button("Clear Transcript"):
+        initialize_session_state()
 
 
 def main():
     sound_window_len = 5000  # 5s
     sound_window_buffer = None
+    initialize_session_state()
 
     while True:
         if webrtc_ctx.audio_receiver:
@@ -47,8 +58,8 @@ def main():
                 break
 
             sound_window_buffer = process_audio_frames(audio_frames, sound_window_buffer, sound_window_len)
-            handle_transcription(sound_window_buffer, transcription_col)
-
+            handle_transcription(sound_window_buffer, transcription_box)
+            handle_summarization(summary_box)
         else:
             logger.warning("WebRTC is not running. Please start the stream.")
             logger.debug(f"WebRTC state: {webrtc_ctx.state}")

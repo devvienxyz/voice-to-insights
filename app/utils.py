@@ -7,16 +7,6 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-def reset_placeholders_and_state(webrtc_ctx, transcription_col, summary_col):
-    """Resets the UI placeholders and relevant session state."""
-    transcription_col.empty()
-    summary_col.empty()
-    st.session_state.transcribed_text = []
-    st.session_state.summary_text = []
-    st.session_state.sound_window_buffer.clear()
-    webrtc_ctx.reset()
-
-
 def save_recording(recording):
     """Save the recording to a file."""
     if len(recording) > 0:
@@ -24,3 +14,13 @@ def save_recording(recording):
         file_path = os.path.join(RECORDINGS_DIR, f"recording_{timestamp}.wav")
         recording.set_frame_rate(44100).export(file_path, format="wav")
         logger.info(f"Recording saved to {file_path}")
+
+
+def initialize_session_state():
+    """Initialize session state variables."""
+    if "transcribed_text" not in st.session_state:
+        st.session_state.transcriptions = []
+    if "summary_text" not in st.session_state:
+        st.session_state.summaries = []
+    if "bullet_points" not in st.session_state:
+        st.session_state.bullet_points = []
