@@ -7,6 +7,9 @@ packages = [
     { include = "app" }
 ]
 
+[tool.poetry]
+package-mode = false
+
 [tool.ruff]
 line-length = 120
 
