@@ -39,13 +39,39 @@ def process_audio_frames(audio_frames, sound_window_buffer, sound_window_len):
     return sound_window_buffer
 
 
-def handle_transcription(sound_window_buffer, transcription_col):
+def handle_transcription(sound_window_buffer, transcription_box):
     if sound_window_buffer:
         transcribed_text = transcribe(sound_window_buffer)
-        print("Transcribed Text Fragment:", transcribed_text)
-        transcription_col.write(transcribed_text)
+
+        st.session_state.transcriptions.append(transcribed_text)
+
+        transcription_html = "<br>".join(st.session_state.transcriptions)
+        transcription_box.markdown("#### Transcriptions")
+        transcription_box.markdown(f'<div class="output-box">{transcription_html}</div>', unsafe_allow_html=True)
+
     else:
         st.write("No audio frames received.")
+
+
+def handle_summarization(summary_box):
+    full_transcription = " ".join(st.session_state.transcriptions)
+    summaries, bullets = summarize(full_transcription)
+
+    st.session_state.summaries.append(summaries)
+    st.session_state.bullet_points.append(bullets)
+
+    summary_html = "<br>".join(st.session_state.summaries)
+    bullets_html = "".join(f"<li>{item}</li>" for item in st.session_state.bullet_points)
+
+    full_html = f"""
+    <div class="output-box">
+        <p>{summary_html}</p>
+        <ul>{bullets_html}</ul>
+    </div>
+    """
+
+    summary_box.markdown("#### Summary", unsafe_allow_html=True)
+    summary_box.markdown(full_html, unsafe_allow_html=True)
 
 
 def transcribe(audio_segment, language="en"):
@@ -72,13 +98,19 @@ def extract_bullet_points(text: str):
 
 
 def summarize(text: str, model=TextSummarizationModels.default.value):
-    if len(text.strip().split()) < 20:
-        print("\n\nToo short!!!   :")
-        print(text)
-        return text
+    words = text.strip().split()
+
+    if len(words) < 20:
+        logger.debug(f"Text too short for summarization. Text: {text}")
+        return text, []
 
     summarizer = pipeline("summarization", model=model)
-    summary = summarizer(text, max_length=150, min_length=40, do_sample=False)[0]["summary_text"]
+    input_len = len(words)
+    max_len = min(150, int(input_len * 0.7))  # 70% of input as a cap
+    min_len = min(40, max_len - 10)  # avoid hitting max directly
+
+    summary = summarizer(text, max_length=max_len, min_length=min_len, do_sample=False)[0]["summary_text"]
+
     bullet_items = extract_bullet_points(summary)
     return summary, bullet_items
 
