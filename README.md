@@ -1,4 +1,4 @@
-# [voice-to-insights](https://github.com/devvienxyz/voice-to-insights)
+# [voice-notes-to-summaries](https://github.com/devvienxyz/voice-to-insights)
 
 Record voice notes -> Summaries
 

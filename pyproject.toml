@@ -1,6 +1,11 @@
 [project]
-name = "voice-to-insight"
-version = "0.1"
+name = "voice-notes-to-summary"
+version = "1.0"
+description = "Summarizes transcribed voice notes."
+authors = ["Keisha Louise Vivien Berondo Bunane <devvien.xyz@gmail.com>"]
+packages = [
+    { include = "app" }
+]
 
 [tool.ruff]
 line-length = 120
